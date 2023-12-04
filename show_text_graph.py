@@ -21,16 +21,15 @@ data = {'Name': ['John', 'Anna', 'Peter', 'Linda', 'James',
 df = pd.DataFrame(data)
 
 
-
-
-# 建立 Django Dash app
+#build dash app
 app = dash.Dash(__name__ )
 
 
-# 建立下拉式選單的選項（名字）
+#set dropdown list options
 name_options = [{'label': name, 'value': name} for name in df['Name'].unique()]
 
-# 建立布局
+
+# layout
 app.layout = html.Div([
     html.Div([
         dcc.Dropdown(
@@ -41,20 +40,23 @@ app.layout = html.Div([
         dcc.Graph(id='performance-graph')])
 ])
 
-# 設定 Callback
+
+# Callback
 @app.callback(
     Output('performance-graph', 'figure'),
     Input('name-dropdown', 'value'))
 
-# 依照選擇的名字更新圖表資料
+
+
+# display and update selection
 def update_performance_graph(selected_name):
-    # 從 DataFrame 中篩選出選定名字的資料
     filtered_data = df[df['Name'] == selected_name]
     
-    # 使用 Plotly Express 繪製互動式圖表
     fig = px.line(filtered_data, x='Year', y='Age', title=f'Performance of {selected_name}')
     return fig
 
+
+#run app
 if my_custom_name == '__main__':
     app.run_server(debug=False, port=3002)
 
