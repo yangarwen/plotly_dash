@@ -21,42 +21,49 @@ data = {'Name': ['John', 'Anna', 'Peter', 'Linda', 'James',
 df = pd.DataFrame(data)
 
 
-#build dash app
-app = dash.Dash(__name__ )
+#Build Dash app
+app = Dash(__name__)
 
-
-#set dropdown list options
+#Create dropdown options
 name_options = [{'label': name, 'value': name} for name in df['Name'].unique()]
 
-
-# layout
+#Set layout
 app.layout = html.Div([
     html.Div([
         dcc.Dropdown(
             id='name-dropdown',
             options=name_options,
-            value=name_options[0]['value'])]),
+            value=[name_options[0]['value']],  # Default value for multiple selection
+            multi=True  # Enable multi-select
+        )
+    ]),
     html.Div([
-        dcc.Graph(id='performance-graph')])
+        dcc.Graph(id='performance-graph')
+    ])
 ])
 
-
-# Callback
+#Callback to update the graph based on dropdown value
 @app.callback(
     Output('performance-graph', 'figure'),
-    Input('name-dropdown', 'value'))
-
-
-
-# display and update selection
-def update_performance_graph(selected_name):
-    filtered_data = df[df['Name'] == selected_name]
+    Input('name-dropdown', 'value')
+)
+def update_performance_graph(selected_names):
+    filtered_data = df[df['Name'].isin(selected_names)]  # Filter data for selected names
     
-    fig = px.line(filtered_data, x='Year', y='Age', title=f'Performance of {selected_name}')
+    fig = go.Figure()
+    for name in selected_names:
+        data_subset = filtered_data[filtered_data['Name'] == name]
+        fig.add_trace(go.Scatter(x=data_subset['Year'], 
+                                 y=data_subset['Age'], 
+                                 mode='lines+markers',
+                                 name=f'Performance of {name}'))
+    
+    fig.update_layout(title=f'Performance of {", ".join(selected_names)}',
+                      xaxis_title='Year',
+                      yaxis_title='Age')
+    
     return fig
 
-
-#run app
-if my_custom_name == '__main__':
-    app.run_server(debug=False, port=3002)
+if __name__ == '__main__':
+    app.run_server(debug=True)
 
